@@ -449,7 +449,7 @@ class Record(object):
             try:
                 data = sock.recv(length)
             except socket.error as e:
-                if e[0] == errno.EAGAIN:
+                if e.errno == errno.EAGAIN:
                     select.select([sock], [], [])
                     continue
                 else:
@@ -506,7 +506,7 @@ class Record(object):
             try:
                 sent = sock.send(data)
             except socket.error as e:
-                if e[0] == errno.EAGAIN:
+                if e.errno == errno.EAGAIN:
                     select.select([], [sock], [])
                     continue
                 else:
@@ -571,7 +571,7 @@ class Request(object):
             self._flush()
             self._end(appStatus, protocolStatus)
         except socket.error as e:
-            if e[0] != errno.EPIPE:
+            if e.errno != errno.EPIPE:
                 raise
 
     def _end(self, appStatus=0, protocolStatus=FCGI_REQUEST_COMPLETE):
@@ -647,7 +647,7 @@ class Connection(object):
             except (EOFError, KeyboardInterrupt):
                 break
             except (select.error, socket.error) as e:
-                if e[0] == errno.EBADF: # Socket was closed by Request.
+                if e.errno == errno.EBADF: # Socket was closed by Request.
                     break
                 raise
 
@@ -978,10 +978,10 @@ class BaseFCGIServer(object):
             try:
                 sock.getpeername()
             except socket.error as e:
-                if e[0] == errno.ENOTSOCK:
+                if e.errno == errno.ENOTSOCK:
                     # Not a socket, assume CGI context.
                     isFCGI = False
-                elif e[0] != errno.ENOTCONN:
+                elif e.errno != errno.ENOTCONN:
                     raise
 
             # FastCGI/CGI discrimination is broken on Mac OS X.
@@ -1124,7 +1124,7 @@ class BaseFCGIServer(object):
                     if hasattr(result, 'close'):
                         result.close()
             except socket.error as e:
-                if e[0] != errno.EPIPE:
+                if e.errno != errno.EPIPE:
                     raise # Don't let EPIPE propagate beyond server
         finally:
             if not self.multithreaded:
